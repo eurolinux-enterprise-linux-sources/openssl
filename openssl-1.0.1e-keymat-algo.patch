@@ -1,0 +1,12 @@
+diff -up openssl-1.0.1e/ssl/t1_enc.c.keymat-algo openssl-1.0.1e/ssl/t1_enc.c
+--- openssl-1.0.1e/ssl/t1_enc.c.keymat-algo	2016-04-07 13:54:03.000000000 +0200
++++ openssl-1.0.1e/ssl/t1_enc.c	2016-04-07 14:45:25.216561938 +0200
+@@ -1205,7 +1205,7 @@ int tls1_export_keying_material(SSL *s,
+ 	if (memcmp(val, TLS_MD_KEY_EXPANSION_CONST,
+ 		 TLS_MD_KEY_EXPANSION_CONST_SIZE) == 0) goto err1;
+ 
+-	rv = tls1_PRF(s->s3->tmp.new_cipher->algorithm2,
++	rv = tls1_PRF(ssl_get_algorithm2(s),
+ 		      val, vallen,
+ 		      NULL, 0,
+ 		      NULL, 0,

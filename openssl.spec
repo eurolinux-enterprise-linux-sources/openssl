@@ -21,13 +21,14 @@
 Summary: A general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.0.1e
-Release: 48%{?dist}.4
+Release: 57%{?dist}
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
 # The original openssl upstream tarball cannot be shipped in the .src.rpm.
 Source: openssl-%{version}-hobbled.tar.xz
 Source1: hobble-openssl
 Source2: Makefile.certificate
+Source5: README.legacy-settings
 Source6: make-dummy-cert
 Source7: renew-dummy-cert
 Source8: openssl-thread-test.c
@@ -144,6 +145,7 @@ Patch144: openssl-1.0.1e-cve-2016-0702.patch
 Patch145: openssl-1.0.1e-cve-2016-0705.patch
 Patch146: openssl-1.0.1e-cve-2016-0797.patch
 Patch147: openssl-1.0.1e-cve-2016-0799.patch
+Patch149: openssl-1.0.1e-keymat-algo.patch
 Patch150: openssl-1.0.1e-cve-2016-2105.patch
 Patch151: openssl-1.0.1e-cve-2016-2106.patch
 Patch152: openssl-1.0.1e-cve-2016-2107.patch
@@ -159,6 +161,7 @@ Patch161: openssl-1.0.1e-cve-2016-2182.patch
 Patch162: openssl-1.0.1e-cve-2016-6302.patch
 Patch163: openssl-1.0.1e-cve-2016-6304.patch
 Patch164: openssl-1.0.1e-cve-2016-6306.patch
+Patch165: openssl-1.0.1e-deprecate-algos.patch
 Patch166: openssl-1.0.1e-cve-2016-8610.patch
 Patch167: openssl-1.0.1e-cve-2017-3731.patch
 
@@ -326,6 +329,7 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch145 -p1 -b .dsa-doublefree
 %patch146 -p1 -b .bn-hex
 %patch147 -p1 -b .bio-printf
+%patch149 -p1 -b .keymat-algo
 %patch150 -p1 -b .b64-overflow
 %patch151 -p1 -b .enc-overflow
 %patch152 -p1 -b .padding-check
@@ -341,6 +345,7 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch162 -p1 -b .ticket-length
 %patch163 -p1 -b .ocsp-memgrowth
 %patch164 -p1 -b .certmsg-len
+%patch165 -p1 -b .deprecate-algos
 %patch166 -p1 -b .many-alerts
 %patch167 -p1 -b .truncated
 
@@ -412,8 +417,8 @@ make all
 # Generate hashes for the included certs.
 make rehash
 
-# Overwrite FIPS README
-cp -f %{SOURCE11} .
+# Overwrite FIPS README and copy README.legacy-settings
+cp -f %{SOURCE5} %{SOURCE11} .
 
 %check
 # Verify that what was compiled actually works.
@@ -423,6 +428,8 @@ patch -p1 -R < %{PATCH33}
 
 LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 export LD_LIBRARY_PATH
+OPENSSL_ENABLE_MD5_VERIFY=
+export OPENSSL_ENABLE_MD5_VERIFY
 make -C test apps tests
 %{__cc} -o openssl-thread-test \
 	`krb5-config --cflags` \
@@ -550,6 +557,7 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %doc doc/openssl_button.html doc/openssl_button.gif
 %doc doc/ssleay.txt
 %doc README.FIPS
+%doc README.legacy-settings
 %{_sysconfdir}/pki/tls/certs/make-dummy-cert
 %{_sysconfdir}/pki/tls/certs/renew-dummy-cert
 %{_sysconfdir}/pki/tls/certs/Makefile
@@ -600,11 +608,26 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %postun -p /sbin/ldconfig
 
 %changelog
-* Mon Feb  6 2017 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-48.4
+* Mon Jan 30 2017 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-57
 - fix CVE-2017-3731 - DoS via truncated packets with RC4-MD5 cipher
+
+* Tue Nov  1 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-55
 - fix CVE-2016-8610 - DoS of single-threaded servers via excessive alerts
 
-* Thu Sep 22 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-48.3
+* Fri Oct 21 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-54
+- fix handling of ciphersuites present after the FALLBACK_SCSV
+  ciphersuite entry (#1386350)
+
+* Wed Oct 12 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-53
+- add README.legacy-settings
+
+* Wed Oct  5 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-52
+- deprecate and disable verification of insecure hash algorithms
+- disallow DH keys with less than 1024 bits in TLS client
+- remove support for weak and export ciphersuites
+- use correct digest when exporting keying material in TLS1.2 (#1376741)
+
+* Thu Sep 22 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-50
 - fix CVE-2016-2177 - possible integer overflow
 - fix CVE-2016-2178 - non-constant time DSA operations
 - fix CVE-2016-2179 - further DoS issues in DTLS
@@ -618,7 +641,7 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
   112 bit effective strength
 - replace expired testing certificates
 
-* Mon May  2 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-48.1
+* Mon May  2 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-49
 - fix CVE-2016-2105 - possible overflow in base64 encoding
 - fix CVE-2016-2106 - possible overflow in EVP_EncryptUpdate()
 - fix CVE-2016-2107 - padding oracle in stitched AES-NI CBC-MAC

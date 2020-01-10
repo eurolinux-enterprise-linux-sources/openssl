@@ -264,7 +264,7 @@ diff -up openssl-1.0.1e/ssl/ssl_lib.c.fallback-scsv openssl-1.0.1e/ssl/ssl_lib.c
  		if (s->s3 && (n != 3 || !p[0]) &&
  			(p[n-2] == ((SSL3_CK_SCSV >> 8) & 0xff)) &&
  			(p[n-1] == (SSL3_CK_SCSV & 0xff)))
-@@ -1469,6 +1484,23 @@ STACK_OF(SSL_CIPHER) *ssl_bytes_to_ciphe
+@@ -1469,6 +1484,24 @@ STACK_OF(SSL_CIPHER) *ssl_bytes_to_ciphe
  			continue;
  			}
  
@@ -282,6 +282,7 @@ diff -up openssl-1.0.1e/ssl/ssl_lib.c.fallback-scsv openssl-1.0.1e/ssl/ssl_lib.c
 +					ssl3_send_alert(s,SSL3_AL_FATAL,SSL_AD_INAPPROPRIATE_FALLBACK);
 +				goto err;
 +				}
++			p += n;
 +			continue;
 +			}
 +
