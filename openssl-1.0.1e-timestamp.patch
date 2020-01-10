@@ -1,0 +1,12 @@
+diff -up openssl-1.0.1e/crypto/ts/ts_rsp_sign.c.timestamp openssl-1.0.1e/crypto/ts/ts_rsp_sign.c
+--- openssl-1.0.1e/crypto/ts/ts_rsp_sign.c.timestamp	2013-02-11 16:26:04.000000000 +0100
++++ openssl-1.0.1e/crypto/ts/ts_rsp_sign.c	2016-01-14 17:35:44.495973697 +0100
+@@ -977,7 +977,7 @@ TS_RESP_set_genTime_with_precision(ASN1_
+ 	if (precision > 0)
+ 	{
+ 		/* Add fraction of seconds (leave space for dot and null). */
+-		BIO_snprintf(p, 2 + precision, ".%ld", usec);
++		BIO_snprintf(p, 2 + precision, ".%06ld", usec);
+ 		/* We cannot use the snprintf return value, 
+ 		   because it might have been truncated. */
+ 		p += strlen(p);

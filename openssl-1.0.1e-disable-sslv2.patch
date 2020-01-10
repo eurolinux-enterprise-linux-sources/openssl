@@ -1,0 +1,83 @@
+diff -up openssl-1.0.1e/ssl/ssl_lib.c.disable-sslv2 openssl-1.0.1e/ssl/ssl_lib.c
+--- openssl-1.0.1e/ssl/ssl_lib.c.disable-sslv2	2016-01-14 17:38:50.018210499 +0100
++++ openssl-1.0.1e/ssl/ssl_lib.c	2016-02-16 16:00:57.151508715 +0100
+@@ -1903,6 +1903,9 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *m
+ 	 */
+ 	ret->options |= SSL_OP_LEGACY_SERVER_CONNECT;
+ 
++	/* Disable SSLv2 by default (affects the SSLv23_method() only) */
++	ret->options |= SSL_OP_NO_SSLv2;
++
+ 	return(ret);
+ err:
+ 	SSLerr(SSL_F_SSL_CTX_NEW,ERR_R_MALLOC_FAILURE);
+diff -up openssl-1.0.1e/doc/apps/ciphers.pod.disable-sslv2 openssl-1.0.1e/doc/apps/ciphers.pod
+--- openssl-1.0.1e/doc/apps/ciphers.pod.disable-sslv2	2016-01-14 17:38:50.000000000 +0100
++++ openssl-1.0.1e/doc/apps/ciphers.pod	2016-02-24 11:17:36.297955053 +0100
+@@ -572,11 +572,11 @@ Note: these ciphers can also be used in
+ =head2 Deprecated SSL v2.0 cipher suites.
+ 
+  SSL_CK_RC4_128_WITH_MD5                 RC4-MD5
+- SSL_CK_RC4_128_EXPORT40_WITH_MD5        EXP-RC4-MD5
+- SSL_CK_RC2_128_CBC_WITH_MD5             RC2-MD5
+- SSL_CK_RC2_128_CBC_EXPORT40_WITH_MD5    EXP-RC2-MD5
++ SSL_CK_RC4_128_EXPORT40_WITH_MD5        Not implemented.
++ SSL_CK_RC2_128_CBC_WITH_MD5             RC2-CBC-MD5
++ SSL_CK_RC2_128_CBC_EXPORT40_WITH_MD5    Not implemented.
+  SSL_CK_IDEA_128_CBC_WITH_MD5            IDEA-CBC-MD5
+- SSL_CK_DES_64_CBC_WITH_MD5              DES-CBC-MD5
++ SSL_CK_DES_64_CBC_WITH_MD5              Not implemented.
+  SSL_CK_DES_192_EDE3_CBC_WITH_MD5        DES-CBC3-MD5
+ 
+ =head1 NOTES
+diff -up openssl-1.0.1e/ssl/s2_lib.c.disable-sslv2 openssl-1.0.1e/ssl/s2_lib.c
+--- openssl-1.0.1e/ssl/s2_lib.c.disable-sslv2	2016-02-24 11:23:24.012237164 +0100
++++ openssl-1.0.1e/ssl/s2_lib.c	2016-02-24 11:19:34.623773423 +0100
+@@ -156,6 +156,7 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl2_cip
+ 	128,
+ 	},
+ 
++#if 0
+ /* RC4_128_EXPORT40_WITH_MD5 */
+ 	{
+ 	1,
+@@ -171,6 +172,7 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl2_cip
+ 	40,
+ 	128,
+ 	},
++#endif
+ 
+ /* RC2_128_CBC_WITH_MD5 */
+ 	{
+@@ -188,6 +190,7 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl2_cip
+ 	128,
+ 	},
+ 
++#if 0
+ /* RC2_128_CBC_EXPORT40_WITH_MD5 */
+ 	{
+ 	1,
+@@ -203,6 +206,7 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl2_cip
+ 	40,
+ 	128,
+ 	},
++#endif
+ 
+ #ifndef OPENSSL_NO_IDEA
+ /* IDEA_128_CBC_WITH_MD5 */
+@@ -222,6 +226,7 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl2_cip
+ 	},
+ #endif
+ 
++#if 0
+ /* DES_64_CBC_WITH_MD5 */
+ 	{
+ 	1,
+@@ -237,6 +242,7 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl2_cip
+ 	56,
+ 	56,
+ 	},
++#endif
+ 
+ /* DES_192_EDE3_CBC_WITH_MD5 */
+ 	{

@@ -1,0 +1,12 @@
+diff -up openssl-1.0.1e/crypto/pkcs12/p12_kiss.c.memleak openssl-1.0.1e/crypto/pkcs12/p12_kiss.c
+--- openssl-1.0.1e/crypto/pkcs12/p12_kiss.c.memleak	2013-02-11 16:26:04.000000000 +0100
++++ openssl-1.0.1e/crypto/pkcs12/p12_kiss.c	2016-01-14 17:45:56.346941782 +0100
+@@ -269,7 +269,7 @@ static int parse_bag(PKCS12_SAFEBAG *bag
+ 			int len, r;
+ 			unsigned char *data;
+ 			len = ASN1_STRING_to_UTF8(&data, fname);
+-			if(len > 0) {
++			if(len >= 0) {
+ 				r = X509_alias_set1(x509, data, len);
+ 				OPENSSL_free(data);
+ 				if (!r)

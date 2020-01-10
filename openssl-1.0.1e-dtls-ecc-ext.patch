@@ -1,0 +1,119 @@
+From 2054eb771ea29378f90d3a77c2f4015b17de702d Mon Sep 17 00:00:00 2001
+From: "Dr. Stephen Henson" <steve@openssl.org>
+Date: Tue, 15 Jul 2014 12:20:30 +0100
+Subject: [PATCH] Add ECC extensions with DTLS.
+
+PR#3449
+---
+ ssl/d1_clnt.c |  8 +++++++-
+ ssl/d1_srvr.c |  5 +++++
+ ssl/t1_lib.c  | 18 ++++++------------
+ 3 files changed, 18 insertions(+), 13 deletions(-)
+
+diff --git a/ssl/d1_clnt.c b/ssl/d1_clnt.c
+index 48e5e06..65dbb4a 100644
+--- a/ssl/d1_clnt.c
++++ b/ssl/d1_clnt.c
+@@ -876,12 +876,18 @@ int dtls1_client_hello(SSL *s)
+ 		*(p++)=0; /* Add the NULL method */
+ 
+ #ifndef OPENSSL_NO_TLSEXT
++		/* TLS extensions*/
++		if (ssl_prepare_clienthello_tlsext(s) <= 0)
++			{
++			SSLerr(SSL_F_DTLS1_CLIENT_HELLO,SSL_R_CLIENTHELLO_TLSEXT);
++			goto err;
++			}
+ 		if ((p = ssl_add_clienthello_tlsext(s, p, buf+SSL3_RT_MAX_PLAIN_LENGTH)) == NULL)
+ 			{
+ 			SSLerr(SSL_F_DTLS1_CLIENT_HELLO,ERR_R_INTERNAL_ERROR);
+ 			goto err;
+ 			}
+-#endif		
++#endif
+ 
+ 		l=(p-d);
+ 		d=buf;
+diff --git a/ssl/d1_srvr.c b/ssl/d1_srvr.c
+index 1384ab0..ef9c347 100644
+--- a/ssl/d1_srvr.c
++++ b/ssl/d1_srvr.c
+@@ -980,6 +980,11 @@ int dtls1_send_server_hello(SSL *s)
+ #endif
+ 
+ #ifndef OPENSSL_NO_TLSEXT
++		if (ssl_prepare_serverhello_tlsext(s) <= 0)
++			{
++			SSLerr(SSL_F_DTLS1_SEND_SERVER_HELLO,SSL_R_SERVERHELLO_TLSEXT);
++			return -1;
++			}
+ 		if ((p = ssl_add_serverhello_tlsext(s, p, buf+SSL3_RT_MAX_PLAIN_LENGTH)) == NULL)
+ 			{
+ 			SSLerr(SSL_F_DTLS1_SEND_SERVER_HELLO,ERR_R_INTERNAL_ERROR);
+diff --git a/ssl/t1_lib.c b/ssl/t1_lib.c
+index f6a480d..8167a51 100644
+--- a/ssl/t1_lib.c
++++ b/ssl/t1_lib.c
+@@ -453,8 +453,7 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *buf, unsigned c
+ #endif
+ 
+ #ifndef OPENSSL_NO_EC
+-	if (s->tlsext_ecpointformatlist != NULL &&
+-	    s->version != DTLS1_VERSION)
++	if (s->tlsext_ecpointformatlist != NULL)
+ 		{
+ 		/* Add TLS extension ECPointFormats to the ClientHello message */
+ 		long lenmax; 
+@@ -473,8 +472,7 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *buf, unsigned c
+ 		memcpy(ret, s->tlsext_ecpointformatlist, s->tlsext_ecpointformatlist_length);
+ 		ret+=s->tlsext_ecpointformatlist_length;
+ 		}
+-	if (s->tlsext_ellipticcurvelist != NULL &&
+-	    s->version != DTLS1_VERSION)
++	if (s->tlsext_ellipticcurvelist != NULL)
+ 		{
+ 		/* Add TLS extension EllipticCurves to the ClientHello message */
+ 		long lenmax; 
+@@ -750,8 +748,7 @@ unsigned char *ssl_add_serverhello_tlsext(SSL *s, unsigned char *buf, unsigned c
+         }
+ 
+ #ifndef OPENSSL_NO_EC
+-	if (s->tlsext_ecpointformatlist != NULL &&
+-	    s->version != DTLS1_VERSION)
++	if (s->tlsext_ecpointformatlist != NULL)
+ 		{
+ 		/* Add TLS extension ECPointFormats to the ServerHello message */
+ 		long lenmax; 
+@@ -1154,8 +1151,7 @@ int ssl_parse_clienthello_tlsext(SSL *s, unsigned char **p, unsigned char *d, in
+ #endif
+ 
+ #ifndef OPENSSL_NO_EC
+-		else if (type == TLSEXT_TYPE_ec_point_formats &&
+-	             s->version != DTLS1_VERSION)
++		else if (type == TLSEXT_TYPE_ec_point_formats)
+ 			{
+ 			unsigned char *sdata = data;
+ 			int ecpointformatlist_length = *(sdata++);
+@@ -1189,8 +1185,7 @@ int ssl_parse_clienthello_tlsext(SSL *s, unsigned char **p, unsigned char *d, in
+ 			fprintf(stderr,"\n");
+ #endif
+ 			}
+-		else if (type == TLSEXT_TYPE_elliptic_curves &&
+-	             s->version != DTLS1_VERSION)
++		else if (type == TLSEXT_TYPE_elliptic_curves)
+ 			{
+ 			unsigned char *sdata = data;
+ 			int ellipticcurvelist_length = (*(sdata++) << 8);
+@@ -1549,8 +1544,7 @@ int ssl_parse_serverhello_tlsext(SSL *s, unsigned char **p, unsigned char *d, in
+ 			}
+ 
+ #ifndef OPENSSL_NO_EC
+-		else if (type == TLSEXT_TYPE_ec_point_formats &&
+-	             s->version != DTLS1_VERSION)
++		else if (type == TLSEXT_TYPE_ec_point_formats)
+ 			{
+ 			unsigned char *sdata = data;
+ 			int ecpointformatlist_length = *(sdata++);
+-- 
+1.8.3.1
+
