@@ -21,7 +21,7 @@
 Summary: A general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.0.1e
-Release: 48.sl6_8.3
+Release: 48%{?dist}.4
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
 # The original openssl upstream tarball cannot be shipped in the .src.rpm.
@@ -159,6 +159,8 @@ Patch161: openssl-1.0.1e-cve-2016-2182.patch
 Patch162: openssl-1.0.1e-cve-2016-6302.patch
 Patch163: openssl-1.0.1e-cve-2016-6304.patch
 Patch164: openssl-1.0.1e-cve-2016-6306.patch
+Patch166: openssl-1.0.1e-cve-2016-8610.patch
+Patch167: openssl-1.0.1e-cve-2017-3731.patch
 
 License: OpenSSL
 Group: System Environment/Libraries
@@ -339,6 +341,8 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch162 -p1 -b .ticket-length
 %patch163 -p1 -b .ocsp-memgrowth
 %patch164 -p1 -b .certmsg-len
+%patch166 -p1 -b .many-alerts
+%patch167 -p1 -b .truncated
 
 sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
 
@@ -596,6 +600,10 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %postun -p /sbin/ldconfig
 
 %changelog
+* Mon Feb  6 2017 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-48.4
+- fix CVE-2017-3731 - DoS via truncated packets with RC4-MD5 cipher
+- fix CVE-2016-8610 - DoS of single-threaded servers via excessive alerts
+
 * Thu Sep 22 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-48.3
 - fix CVE-2016-2177 - possible integer overflow
 - fix CVE-2016-2178 - non-constant time DSA operations
