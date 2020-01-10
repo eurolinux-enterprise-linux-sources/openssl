@@ -21,8 +21,7 @@
 Summary: A general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.0.1e
-%define dist .sl6_8
-Release: 48%{?dist}.1
+Release: 48.sl6_8.3
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
 # The original openssl upstream tarball cannot be shipped in the .src.rpm.
@@ -150,7 +149,16 @@ Patch151: openssl-1.0.1e-cve-2016-2106.patch
 Patch152: openssl-1.0.1e-cve-2016-2107.patch
 Patch153: openssl-1.0.1e-cve-2016-2108.patch
 Patch154: openssl-1.0.1e-cve-2016-2109.patch
-Patch901: openssl-1.0.1e-update-test-certs.patch
+Patch155: openssl-1.0.1e-update-test-certs.patch
+Patch156: openssl-1.0.1e-cve-2016-2177.patch
+Patch157: openssl-1.0.1e-cve-2016-2178.patch
+Patch158: openssl-1.0.1e-cve-2016-2179.patch
+Patch159: openssl-1.0.1e-cve-2016-2180.patch
+Patch160: openssl-1.0.1e-cve-2016-2181.patch
+Patch161: openssl-1.0.1e-cve-2016-2182.patch
+Patch162: openssl-1.0.1e-cve-2016-6302.patch
+Patch163: openssl-1.0.1e-cve-2016-6304.patch
+Patch164: openssl-1.0.1e-cve-2016-6306.patch
 
 License: OpenSSL
 Group: System Environment/Libraries
@@ -321,8 +329,16 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch152 -p1 -b .padding-check
 %patch153 -p1 -b .asn1-negative
 %patch154 -p1 -b .asn1-bio-dos
-
-%patch901 -p1 -b .update-test-certs
+%patch155 -p1 -b .update-certs
+%patch156 -p1 -b .pointer-arithmetic
+%patch157 -p1 -b .dsa-consttime
+%patch158 -p1 -b .dtls1-dos2
+%patch159 -p1 -b .ts-oob-read
+%patch160 -p1 -b .dtls1-replay
+%patch161 -p1 -b .bn-overflow
+%patch162 -p1 -b .ticket-length
+%patch163 -p1 -b .ocsp-memgrowth
+%patch164 -p1 -b .certmsg-len
 
 sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
 
@@ -580,9 +596,19 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %postun -p /sbin/ldconfig
 
 %changelog
-* Wed May  18 2016 Connie Sieh <csieh@fnal.gov> 1.0.1e-48%{?dist}.1
-- backport upstream commit to replace expired testing certificates
-  for S/MIME tests (#1335097)
+* Thu Sep 22 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-48.3
+- fix CVE-2016-2177 - possible integer overflow
+- fix CVE-2016-2178 - non-constant time DSA operations
+- fix CVE-2016-2179 - further DoS issues in DTLS
+- fix CVE-2016-2180 - OOB read in TS_OBJ_print_bio()
+- fix CVE-2016-2181 - DTLS1 replay protection and unprocessed records issue
+- fix CVE-2016-2182 - possible buffer overflow in BN_bn2dec()
+- fix CVE-2016-6302 - insufficient TLS session ticket HMAC length check
+- fix CVE-2016-6304 - unbound memory growth with OCSP status request
+- fix CVE-2016-6306 - certificate message OOB reads
+- mitigate CVE-2016-2183 - degrade all 64bit block ciphers and RC4 to
+  112 bit effective strength
+- replace expired testing certificates
 
 * Mon May  2 2016 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-48.1
 - fix CVE-2016-2105 - possible overflow in base64 encoding
