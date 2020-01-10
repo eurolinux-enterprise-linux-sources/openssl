@@ -21,7 +21,7 @@
 Summary: A general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.0.1e
-Release: 57%{?dist}
+Release: 58%{?dist}
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
 # The original openssl upstream tarball cannot be shipped in the .src.rpm.
@@ -164,6 +164,7 @@ Patch164: openssl-1.0.1e-cve-2016-6306.patch
 Patch165: openssl-1.0.1e-deprecate-algos.patch
 Patch166: openssl-1.0.1e-cve-2016-8610.patch
 Patch167: openssl-1.0.1e-cve-2017-3731.patch
+Patch168: openssl-1.0.1e-cve-2019-1559.patch
 
 License: OpenSSL
 Group: System Environment/Libraries
@@ -348,6 +349,7 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch165 -p1 -b .deprecate-algos
 %patch166 -p1 -b .many-alerts
 %patch167 -p1 -b .truncated
+%patch168 -p1 -b .error-state
 
 sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
 
@@ -608,6 +610,9 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %postun -p /sbin/ldconfig
 
 %changelog
+* Tue Jul  1 2019 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-58
+- fix CVE-2019-1559 - 0-byte record padding oracle
+
 * Mon Jan 30 2017 Tomáš Mráz <tmraz@redhat.com> 1.0.1e-57
 - fix CVE-2017-3731 - DoS via truncated packets with RC4-MD5 cipher
 
