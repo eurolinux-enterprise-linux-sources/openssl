@@ -16,14 +16,14 @@
 
 # Arches on which we need to prevent arch conflicts on opensslconf.h, must
 # also be handled in opensslconf-new.h.
-%define multilib_arches %{ix86} ia64 %{mips} ppc %{power64} s390 s390x sparcv9 sparc64 x86_64
+%define multilib_arches %{ix86} ia64 %{mips} ppc ppc64 s390 s390x sparcv9 sparc64 x86_64
 
 %global _performance_build 1
 
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.0.2k
-Release: 12%{?dist}
+Release: 19%{?dist}
 Epoch: 1
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
@@ -87,6 +87,7 @@ Patch96: openssl-1.0.2e-speed-doc.patch
 Patch97: openssl-1.0.2k-no-ssl2.patch
 Patch98: openssl-1.0.2k-long-hello.patch
 Patch99: openssl-1.0.2k-fips-randlock.patch
+Patch106: openssl-1.0.2k-rsa-check.patch
 # Backported fixes including security fixes
 Patch80: openssl-1.0.2e-wrap-pad.patch
 Patch81: openssl-1.0.2a-padlock64.patch
@@ -97,6 +98,18 @@ Patch85: openssl-1.0.2k-req-x509.patch
 Patch86: openssl-1.0.2k-cve-2017-3736.patch
 Patch87: openssl-1.0.2k-cve-2017-3737.patch
 Patch88: openssl-1.0.2k-cve-2017-3738.patch
+Patch89: openssl-1.0.2k-s390x-update.patch
+Patch100: openssl-1.0.2k-name-sensitive.patch
+Patch101: openssl-1.0.2k-cve-2017-3735.patch
+Patch102: openssl-1.0.2k-cve-2018-0732.patch
+Patch103: openssl-1.0.2k-cve-2018-0737.patch
+Patch104: openssl-1.0.2k-cve-2018-0739.patch
+Patch105: openssl-1.0.2k-cve-2018-0495.patch
+Patch107: openssl-1.0.2k-cve-2018-5407.patch
+Patch108: openssl-1.0.2k-cve-2018-0734.patch
+Patch109: openssl-1.0.2k-cve-2019-1559.patch
+Patch110: openssl-1.0.2k-fix-one-and-done.patch
+Patch111: openssl-1.0.2k-fix-9-lives.patch
 
 License: OpenSSL
 Group: System Environment/Libraries
@@ -216,6 +229,7 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch97 -p1 -b .no-ssl2
 %patch98 -p1 -b .long-hello
 %patch99 -p1 -b .randlock
+%patch106 -p1 -b .rsa-check
 
 %patch80 -p1 -b .wrap
 %patch81 -p1 -b .padlock64
@@ -226,6 +240,18 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch86 -p1 -b .mont5-carry
 %patch87 -p1 -b .ssl-err
 %patch88 -p1 -b .rsaz-overflow
+%patch89 -p1 -b .s390x-update
+%patch100 -p1 -b .name-sensitive
+%patch101 -p1 -b .overread
+%patch102 -p1 -b .large-dh
+%patch103 -p1 -b .gen-timing
+%patch104 -p1 -b .asn1-recursive
+%patch105 -p1 -b .rohnp-fix
+%patch107 -p1 -b .ecc-ladder
+%patch108 -p1 -b .dsa-signing
+%patch109 -p1 -b .padding-oracle
+%patch110 -p1 -b .one-and-done
+%patch111 -p1 -b .9-lives
 
 sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
 
@@ -525,6 +551,35 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %postun libs -p /sbin/ldconfig
 
 %changelog
+* Tue Apr  9 2019 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-19
+- close the RSA decryption 9 lives of Bleichenbacher cat
+  timing side channel (#1649568)
+
+* Fri Apr  5 2019 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-18
+- fix CVE-2018-0734 - DSA signature local timing side channel
+- fix CVE-2019-1559 - 0-byte record padding oracle
+- close the RSA decryption One & done EM side channel (#1619558)
+
+* Wed Feb  6 2019 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-17
+- use SHA-256 in FIPS RSA pairwise key check
+- fix CVE-2018-5407 (and CVE-2018-0735) - EC signature local
+  timing side-channel key extraction
+
+* Tue Aug 14 2018 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-16
+- fix CVE-2018-0495 - ROHNP - Key Extraction Side Channel on DSA, ECDSA
+- fix incorrect error message on FIPS DSA parameter generation (#1603597)
+
+* Tue Jun 19 2018 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-14
+- ppc64le is not multilib architecture (#1585004)
+
+* Mon Jun 18 2018 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-13
+- add S390x assembler updates
+- make CA name list comparison function case sensitive (#1548401)
+- fix CVE-2017-3735 - possible one byte overread with X.509 IPAdressFamily
+- fix CVE-2018-0732 - large prime DH DoS of TLS client
+- fix CVE-2018-0737 - RSA key generation cache timing vulnerability
+- fix CVE-2018-0739 - stack overflow parsing recursive ASN.1 structure
+
 * Wed Dec 13 2017 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-12
 - fix CVE-2017-3737 - incorrect handling of fatal error state
 - fix CVE-2017-3738 - AVX2 Montgomery multiplication bug with 1024 bit modulus
