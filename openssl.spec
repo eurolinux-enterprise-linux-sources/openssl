@@ -23,7 +23,7 @@
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.0.2k
-Release: 16%{?dist}
+Release: 16%{?dist}.1
 Epoch: 1
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
@@ -87,6 +87,7 @@ Patch96: openssl-1.0.2e-speed-doc.patch
 Patch97: openssl-1.0.2k-no-ssl2.patch
 Patch98: openssl-1.0.2k-long-hello.patch
 Patch99: openssl-1.0.2k-fips-randlock.patch
+Patch106: openssl-1.0.2k-rsa-check.patch
 # Backported fixes including security fixes
 Patch80: openssl-1.0.2e-wrap-pad.patch
 Patch81: openssl-1.0.2a-padlock64.patch
@@ -104,6 +105,7 @@ Patch102: openssl-1.0.2k-cve-2018-0732.patch
 Patch103: openssl-1.0.2k-cve-2018-0737.patch
 Patch104: openssl-1.0.2k-cve-2018-0739.patch
 Patch105: openssl-1.0.2k-cve-2018-0495.patch
+Patch107: openssl-1.0.2k-cve-2018-5407.patch
 
 License: OpenSSL
 Group: System Environment/Libraries
@@ -223,6 +225,7 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch97 -p1 -b .no-ssl2
 %patch98 -p1 -b .long-hello
 %patch99 -p1 -b .randlock
+%patch106 -p1 -b .rsa-check
 
 %patch80 -p1 -b .wrap
 %patch81 -p1 -b .padlock64
@@ -240,6 +243,7 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch103 -p1 -b .gen-timing
 %patch104 -p1 -b .asn1-recursive
 %patch105 -p1 -b .rohnp-fix
+%patch107 -p1 -b .ecc-ladder
 
 sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
 
@@ -539,6 +543,10 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %postun libs -p /sbin/ldconfig
 
 %changelog
+* Wed Feb  6 2019 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-16.1
+- use SHA-256 in FIPS RSA pairwise key check
+- fix CVE-2018-5407 - EC signature local timing side-channel key extraction
+
 * Tue Aug 14 2018 Tomáš Mráz <tmraz@redhat.com> 1.0.2k-16
 - fix CVE-2018-0495 - ROHNP - Key Extraction Side Channel on DSA, ECDSA
 - fix incorrect error message on FIPS DSA parameter generation (#1603597)
